@@ -19,7 +19,7 @@ if webpage_url:
     splits = text_splitter.split_documents(docs)
 
     # 2. Create Ollama embeddings and vector store
-    embeddings = OllamaEmbeddings(model="llama3.1")
+    embeddings = OllamaEmbeddings(model="llama3.1",tfs_z=1,show_progress=True)
     vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
 
     # 3. Call Ollama Llama3 model

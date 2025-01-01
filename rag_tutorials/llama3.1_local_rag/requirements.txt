@@ -2,3 +2,6 @@ streamlit
 ollama 
 langchain 
 langchain_community
+bs4
+chromadb
+tqdm
