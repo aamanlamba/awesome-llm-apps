@@ -4,11 +4,25 @@ from datetime import datetime
 import streamlit as st
 from smolagents import ToolCallingAgent, CodeAgent, DuckDuckGoSearchTool, LiteLLMModel
 import logging
+from transformers import tool
+import requests
 # logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Create custom tool 
 
+### Currently this fails with an
+### unexpected keyword argument 'sanitize_inputs_outputs'
+@tool
+def check_model_exists(model_name: str) -> str:
+    """
+    Tool to check if specific model exists in repository
+
+    Args:
+        model_name: The model to be searched for in the local repository
+    """
+    return "Model exists" #dummy return
 class SmolAgentApp:
     def __init__(self):
         try:
@@ -20,14 +34,14 @@ class SmolAgentApp:
 
             )
             #use ToolCalling Agent to invoke agents using JSON
-            self.toolCallingAgent = ToolCallingAgent(tools=[], 
+            self.toolCallingAgent = ToolCallingAgent(tools=[check_model_exists], 
                                                      model=model,
                                                      add_base_tools=True,
                           )
 
             #Use CodeAgent to invoke agents using python code
 
-            self.codeAgent = CodeAgent(tools=[DuckDuckGoSearchTool],
+            self.codeAgent = CodeAgent(tools=[check_model_exists],
                                 model=model, 
                                 additional_authorized_imports=['requests','math', 'bs4'],
                                 add_base_tools=True,
@@ -46,7 +60,7 @@ class SmolAgentApp:
             st.error(f"Error executing query: {str(e)}")
     
     def getAgentlogs(self) -> str:
-        logs = self.toolCallingAgent.write_inner_memory_from_logs()
+        logs = self.toolCallingAgent.logs
         return logs
 
     def testTools(self):
@@ -59,33 +73,12 @@ class SmolAgentApp:
             logger.error(f"Error invoking tools: {str(e)}")
 
 from enum import Enum 
-import ast
 # Define the MessageRole enum 
 class MessageRole(Enum): 
     SYSTEM = 'system' 
     USER = 'user' 
     ASSISTANT = 'assistant'
 
-def extract_qa(data):
-    """
-    This function extracts questions by MessageRole.USER and answers by MessageRole.ASSISTANT
-    from a given list of messages and returns them as a dictionary.
-    
-    Args:
-    data (list): A list of dictionaries containing 'role' and 'content'.
-    
-    Returns:
-    dict: A dictionary where keys are questions and values are answers.
-    """
-    qa_dict = {}
-    questions = [msg['content'] for msg in data if msg['role'] == "user"]
-    answers = [msg['content'] for msg in data if msg['role'] == "assistant"]
-    logger.info(questions)
-    logger.info(answers)
-    for question, answer in zip(questions, answers):
-        qa_dict[question] = answer
-
-    return qa_dict
 
 def main():
     """Streamlit application"""
@@ -100,31 +93,38 @@ def main():
         st.session_state.chat_history=[]
     if('smolagent_app' not in st.session_state):
         st.session_state.smolagent_app = SmolAgentApp()
-    
+    # check if Ollama models exist
+    model_name="Llama3.1"
+    modelQuery = f"Does {model_name} exist in the local ollama repository?"
+    #Temporarily commenting the next lines due to tool invocation error
+    #result = st.session_state.smolagent_app.process_query(modelQuery)
+    #check_model_exists("your_model_name")
+    #logger.info(f"{modelQuery} -> {result}")
+    #st.text(result)
     query = st.text_input("Enter query:",type="default")
     if query:
         # process query and return results
         with st.spinner():
             response = st.session_state.smolagent_app.process_query(query)
-            st.caption(response)
+            #st.caption(response)
             #read agent logs
             agentLogs = st.session_state.smolagent_app.getAgentlogs()
             logger.info(agentLogs)
             # Print questions and answers from agent logs
-            qa_dict = extract_qa(agentLogs)
+            #qa_dict = extract_qa(agentLogs)
 
             # Print in the format Question - Answer
-            for question, answer in qa_dict.items():
-                logger.info(f"Question: {question}\nAnswer: {response}\n")
-                st.caption(f"Question: {question}\nAnswer: {response}\n")
+            #for question, answer in qa_dict.items():
+            logger.info(f"Question: {query}\nAnswer: {response}\n")
+            st.caption(f"Question: {query}\nAnswer: {response}\n")
 
 
-                #add to history
-                st.session_state.chat_history.append(
-                    {"user":question,
-                    "agent":response,
-                    "timestamp":datetime.now().strftime("%H:%M:%S")}
-                )
+            #add to history
+            st.session_state.chat_history.append(
+                {"user":query,
+                "agent":response,
+                "timestamp":datetime.now().strftime("%H:%M:%S")}
+            )
             st.session_state.query=""
     col1, col2 = st.columns([1,5])
     # display history

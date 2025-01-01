@@ -20,6 +20,11 @@ check_ollama_model_exists llama3.2
 streamlit run smolagents_ex1.py
 ```
 
+### Base tools loaded by default:
+DuckDuckGo web search*: performs a web search using DuckDuckGo browser.
+Python code interpreter: runs your the LLM generated Python code in a secure environment.
+Transcriber: a speech-to-text pipeline built on Whisper-Turbo that transcribes an audio to text.
+
 ### References:
 https://huggingface.co/spaces/vincentiusyoshuac/iChat/blob/main/app.py
 
