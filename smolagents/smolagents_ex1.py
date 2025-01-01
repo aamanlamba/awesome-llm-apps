@@ -4,7 +4,7 @@ from datetime import datetime
 import streamlit as st
 from smolagents import ToolCallingAgent, CodeAgent, DuckDuckGoSearchTool, LiteLLMModel
 import logging
-# Konfigurasi logging
+# logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -13,18 +13,21 @@ class SmolAgentApp:
     def __init__(self):
         try:
             # use Ollama and Llama3.2
+            # To-do: Add drop-down list of ollama models to select 
             model = LiteLLMModel(
                 model_id="ollama_chat/llama3.2",
                 api_base="http://localhost:11434/api/chat",
 
             )
             #use ToolCalling Agent to invoke agents using JSON
+            # TO-DO: Resolve Adding any web search tool gives the error
+            # ERROR:__main__:Error initiating tools: "Error: tool 'web_search' already exists in the toolbox."
             self.toolCallingAgent = ToolCallingAgent(tools=[], 
                                                      model=model,
                                                      #add_base_tools=True,
                           )
 
-            #use CodeAgent to invoke agents using python code
+            #Use CodeAgent to invoke agents using python code
 
             self.codeAgent = CodeAgent(tools=[DuckDuckGoSearchTool],
                                 model=model, 
@@ -45,7 +48,8 @@ class SmolAgentApp:
             st.error(f"Error executing query: {str(e)}")
 
     def testTools(self):
-        try:                    #test tools
+        try:                    
+            #test tools
             logger.info(self.toolCallingAgent.run("How many countries are in the continent of Asia?"))
 
             logger.info(self.codeAgent.run("Which is the smallest country in Asia?"))

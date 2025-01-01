@@ -22,7 +22,9 @@ streamlit run smolagents_ex1.py
 
 ### References:
 https://huggingface.co/spaces/vincentiusyoshuac/iChat/blob/main/app.py
+
 https://huggingface.co/blog/smolagents
+
 https://github.com/huggingface/smolagents/tree/main
 
 
