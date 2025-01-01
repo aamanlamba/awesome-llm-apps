@@ -15,11 +15,11 @@ if webpage_url:
     # 1. Load the data
     loader = WebBaseLoader(webpage_url)
     docs = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=10)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=256, chunk_overlap=10)
     splits = text_splitter.split_documents(docs)
 
     # 2. Create Ollama embeddings and vector store
-    embeddings = OllamaEmbeddings(model="llama3.1",tfs_z=1,show_progress=True)
+    embeddings = OllamaEmbeddings(model="llama3.2",tfs_z=1,show_progress=True)
     vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings)
 
     # 3. Call Ollama Llama3 model
@@ -29,7 +29,7 @@ if webpage_url:
         return response['message']['content']
 
     # 4. RAG Setup
-    retriever = vectorstore.as_retriever()
+    retriever = vectorstore.as_retriever(search_type="mmr")
 
     def combine_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
