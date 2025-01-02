@@ -1,5 +1,5 @@
 # Load and finetune LLM
-from mlx_lm import generate,load
+from mlx_lm import generate,load, fuse
 from huggingface_hub import login
 
 import os
@@ -62,7 +62,7 @@ from mlx_lm import load, generate
 from mlx_lm.tuner import train, TrainingArgs 
 from mlx_lm.tuner import linear_to_lora_layers
 from pathlib import Path
-import json
+import json, time
 adapter_path = Path("./adapters")
 adapter_path.mkdir(parents=True, exist_ok=True)
 #set LORA parameters
@@ -89,3 +89,55 @@ num_train_params = (
     sum(v.size for _, v in tree_flatten(model.trainable_parameters()))
 )
 logger.info(f"Number of trainable parameters: {num_train_params}")
+
+# setup training model and optimizer - Adam
+model.train()
+opt = optim.Adam(learning_rate=1e-5)
+#create metrics class to measure fine-tuning progress
+class Metrics:
+    train_losses = []
+    val_losses = []
+    def on_train_loss_report(self, info):
+        self.train_losses.append((info["iteration"], info["train_loss"]))
+    def on_val_loss_report(self, info):
+        self.val_losses.append((info["iteration"], info["val_loss"]))
+        
+metrics = Metrics()
+# Start fine-tuning
+start_time = time.time()
+
+train(
+    model = model,
+    tokenizer = tokenizer,
+    args = training_args,
+    optimizer = opt,
+    train_dataset = train_set,
+    val_dataset = dev_set,
+    training_callback = metrics
+)
+end_time = time.time()
+duration = end_time - start_time
+logger.info(f"Completed finetuning Training in {duration/60:.2f} minutes")
+
+# plot graph of fine-tuning
+train_its, train_losses = zip(*metrics.train_losses)
+val_its, val_losses = zip(*metrics.val_losses)
+plt.plot(train_its, train_losses, '-o')
+plt.plot(val_its, val_losses, '-o')
+plt.xlabel("Iteration")
+plt.ylabel("Loss")
+plt.legend(['Train', "Valid"])
+plt.show()
+
+# Build Lora model 
+model_lora, _ = load("meta-llama/Llama-3.2-1B-Instruct", 
+                        adapter_path="adapters")
+
+generate(model_lora, tokenizer, prompt=prompt, verbose=True)
+
+# fusion of base model and finetuned model
+fuse(
+    model="meta-llama/Llama-3.2-1B-Instruct",  # Path to the original base model
+    adapter_path="./adapters",  # Path to the adapter directory
+    save_path="./models",  # Path to save the fused model
+)
