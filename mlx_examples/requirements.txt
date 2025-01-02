@@ -1,0 +1,11 @@
+mlx 
+mlx_lm 
+transformers 
+datasets
+huggingface_hub 
+pandas 
+matplotlib 
+pathlib
+ollama
+pyarrow
+
