@@ -91,7 +91,7 @@ num_train_params = (
 )
 logger.info(f"Number of trainable parameters: {num_train_params}")
 
-""" 
+
 # setup training model and optimizer - Adam
 model.train()
 opt = optim.Adam(learning_rate=1e-5)
@@ -129,15 +129,15 @@ plt.plot(val_its, val_losses, '-o')
 plt.xlabel("Iteration")
 plt.ylabel("Loss")
 plt.legend(['Train', "Valid"])
-plt.show() """
+plt.show() 
 
+"""
 # Build Lora model 
 model_lora, _ = load("meta-llama/Llama-3.2-1B-Instruct", 
                         adapter_path="./adapters")
 
 response = generate(model_lora, tokenizer, prompt=prompt, verbose=True)
 logging.info(response)
-
 
 # fusion of base model and finetuned model
 fuse(
@@ -147,3 +147,4 @@ fuse(
 )
 # fuse from command line
 # python mlx_lm.fuse model="..."
+"""
