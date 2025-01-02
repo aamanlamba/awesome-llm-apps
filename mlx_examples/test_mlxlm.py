@@ -1,11 +1,12 @@
-# Load and finetune LLM
-from mlx_lm import generate,load
-from huggingface_hub import login
 
 import os
 from dotenv import load_dotenv
 import logging
 # logging
+# Load and finetune LLM
+from mlx_lm import generate,load
+from huggingface_hub import login
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 load_dotenv()

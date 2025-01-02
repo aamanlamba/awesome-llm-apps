@@ -9,6 +9,8 @@ pip install -r requirements.txt
 Get HuggingFace token with permission to read gated repositories 
 and get access to a MLX-supported model
 
-
+```
+python mlx_finetuning.py
+```
 ### Finetuning process
 Reference: https://medium.com/tutorial-by-winston-wang/beginners-guide-to-fine-tuning-models-using-mlx-on-apple-silicon-1a21ebb70aed
