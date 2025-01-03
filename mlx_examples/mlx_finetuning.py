@@ -69,6 +69,7 @@ adapter_path.mkdir(parents=True, exist_ok=True)
 #set LORA parameters
 lora_config = {
  "lora_layers": 8,
+ "num_layers": 8,
  "lora_parameters": {
     "rank": 8,
     "scale": 20.0,
